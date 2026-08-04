@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahoot! - Host Quiz</title>
+    <link href="css/styles.css" rel="stylesheet">
+    <link href="css/host.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="host-game-layout">
+        <!-- Room Setup & Connected Players Sidebar -->
+        <div class="sidebar-panel">
+            <div class="host-header-card">
+                <h2>👑 Host Control</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Set up room and push live questions</p>
+            </div>
+
+            <div class="room-setup-box">
+                <input type="text" id="roomCode" placeholder="Enter Room Code (e.g. ROOM1)" autocomplete="off">
+                <button class="btn-primary" onclick="connectAsHost()">Connect as Host</button>
+            </div>
+
+            <div class="leaderboard-box">
+                <div class="leaderboard-title">
+                    <span>🏆 Live Leaderboard</span>
+                </div>
+                <ul id="leaderboard" class="leaderboard-list">
+                    <li class="leaderboard-item" style="color: var(--text-secondary);">No players joined yet.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Question Creation & Control Center -->
+        <div class="main-game-panel">
+            <div class="host-question-form">
+                <div class="question-top-bar">
+                    <span class="category-tag">CREATE QUESTION</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Question Text</label>
+                    <input type="text" id="qtext" placeholder="e.g. How many rings does the Olympic flag have?">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Answer Options (4 Grid Choices)</label>
+                    <div class="host-options-grid">
+                        <input type="text" id="opt0" placeholder="Option 1">
+                        <input type="text" id="opt1" placeholder="Option 2">
+                        <input type="text" id="opt2" placeholder="Option 3">
+                        <input type="text" id="opt3" placeholder="Option 4">
+                    </div>
+                </div>
+
+                <div class="form-group" style="max-width: 250px; margin-top: 15px;">
+                    <label class="form-label">Correct Option Index (0 to 3)</label>
+                    <input type="number" id="correctIndex" min="0" max="3" placeholder="0, 1, 2, or 3">
+                </div>
+
+                <button class="host-btn" onclick="sendStructuredQuestion()" style="margin-top: 20px; height: 54px; font-size: 1.1rem;">🚀 Push Question Live</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WebSockets & STOMP Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

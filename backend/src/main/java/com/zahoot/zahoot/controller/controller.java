@@ -1,7 +1,7 @@
 package com.zahoot.zahoot.controller;
 
+import com.zahoot.zahoot.model.Player;
 import com.zahoot.zahoot.model.Question;
-import com.zahoot.zahoot.model.Room;
 import com.zahoot.zahoot.service.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -10,8 +10,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import com.zahoot.zahoot.model.Player;
 
 import java.util.List;
 import java.util.Map;
@@ -25,9 +23,11 @@ public class controller {
     private SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/join/{roomCode}")
-    @SendTo("/topic/{roomCode}/players")
-    public List<Player> join(@DestinationVariable String roomCode, @Payload Player player) {
-        return quizService.addPlayerToRoom(roomCode, player);
+    public void join(@DestinationVariable String roomCode, @Payload Player player) {
+        System.out.println("Player joined: " + player.getName() + " in room: " + roomCode);
+        List<Player> players = quizService.addPlayerToRoom(roomCode, player);
+        messagingTemplate.convertAndSend("/topic/" + roomCode + "/players", players);
+        messagingTemplate.convertAndSend("/topic/" + roomCode + "/leaderboard", players);
     }
 
     @MessageMapping("/question/{roomCode}")
@@ -37,9 +37,16 @@ public class controller {
     }
 
     @MessageMapping("/answer/{roomCode}")
-    public void receiveAnswer(@DestinationVariable String roomCode, @Payload Map<String, String> answer) {
-        quizService.receiveAnswer(roomCode, answer);
-        List<Player> leaderboard = quizService.getLeaderboard(roomCode);
+    public void receiveAnswer(@DestinationVariable String roomCode, @Payload Map<String, Object> answer) {
+        String name = (String) answer.get("name");
+        int answerIndex = Integer.parseInt(answer.get("answer").toString());
+        quizService.registerAnswer(roomCode, name, answerIndex);
+    }
+
+    @MessageMapping("/evaluate/{roomCode}")
+    public void evaluateResults(@DestinationVariable String roomCode) {
+        List<Player> leaderboard = quizService.evaluateAndGetLeaderboard(roomCode);
         messagingTemplate.convertAndSend("/topic/" + roomCode + "/leaderboard", leaderboard);
+        messagingTemplate.convertAndSend("/topic/" + roomCode + "/players", leaderboard);
     }
 }

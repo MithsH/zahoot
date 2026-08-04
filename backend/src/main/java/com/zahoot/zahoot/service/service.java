@@ -14,6 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class service {
 
     private final Map<String, Room> rooms = new ConcurrentHashMap<>();
+    // RoomCode -> (PlayerName -> SelectedOptionIndex)
+    private final Map<String, Map<String, Integer>> roomAnswers = new ConcurrentHashMap<>();
 
     public Room getOrCreateRoom(String roomCode) {
         return rooms.computeIfAbsent(roomCode, code -> {
@@ -25,35 +27,52 @@ public class service {
 
     public List<Player> addPlayerToRoom(String roomCode, Player player) {
         Room room = getOrCreateRoom(roomCode);
-        room.getPlayers().add(player);
+        // Check if player already exists
+        boolean exists = room.getPlayers().stream().anyMatch(p -> p.getName().equalsIgnoreCase(player.getName()));
+        if (!exists) {
+            room.getPlayers().add(player);
+        }
         return room.getPlayers();
     }
 
     public Question addQuestionToRoom(String roomCode, Question question) {
         Room room = getOrCreateRoom(roomCode);
         room.getQuestions().add(question);
+        // Reset answers for new question
+        roomAnswers.put(roomCode, new ConcurrentHashMap<>());
         return question;
     }
 
-    public void receiveAnswer(String roomCode, Map<String, String> answerData) {
+    public void registerAnswer(String roomCode, String playerName, int selectedIndex) {
         Room room = rooms.get(roomCode);
         if (room == null) return;
 
-        String playerName = answerData.get("name");
-        int selectedIndex = Integer.parseInt(answerData.get("answer"));
+        Map<String, Integer> answers = roomAnswers.computeIfAbsent(roomCode, k -> new ConcurrentHashMap<>());
+        // Lock answer: only record first answer from player
+        answers.putIfAbsent(playerName, selectedIndex);
+    }
+
+    public List<Player> evaluateAndGetLeaderboard(String roomCode) {
+        Room room = rooms.get(roomCode);
+        if (room == null) return new ArrayList<>();
 
         List<Question> questions = room.getQuestions();
-        if (questions.isEmpty()) return;
+        if (!questions.isEmpty()) {
+            Question currentQuestion = questions.get(questions.size() - 1);
+            int correctIndex = currentQuestion.getCorrectOptionIndex();
+            Map<String, Integer> answers = roomAnswers.getOrDefault(roomCode, new ConcurrentHashMap<>());
 
-        Question currentQuestion = questions.get(questions.size() - 1);
-
-        if (currentQuestion.getCorrectOptionIndex() == selectedIndex) {
             for (Player player : room.getPlayers()) {
-                if (player.getName().equals(playerName)) {
-                    player.setScore(player.getScore() + 1);
+                Integer playerAnswer = answers.get(player.getName());
+                if (playerAnswer != null && playerAnswer == correctIndex) {
+                    player.setScore(player.getScore() + 100);
                 }
             }
+            // Clear answers for this evaluated question
+            answers.clear();
         }
+
+        return getLeaderboard(roomCode);
     }
 
     public List<Player> getLeaderboard(String roomCode) {

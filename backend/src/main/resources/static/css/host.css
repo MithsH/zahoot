@@ -1,0 +1,63 @@
+/* Host Page Specific Styles */
+.host-game-layout {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 30px;
+    width: 95%;
+    max-width: 1200px;
+    min-height: 85vh;
+    margin: 20px auto;
+}
+
+@media (max-width: 900px) {
+    .host-game-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.host-header-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: 20px;
+    text-align: center;
+}
+
+.host-header-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 6px;
+}
+
+.room-setup-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+}
+
+.host-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.host-question-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
